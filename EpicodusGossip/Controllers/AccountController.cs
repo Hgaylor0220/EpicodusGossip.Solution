@@ -1,45 +1,75 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using EpicodusGossip.Models;
+using EpicodusGossip.Data;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 
 namespace EpicodusGossip.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ValuesController : ControllerBase
+    public class AccountsController : Controller
     {
-        // GET api/values
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        private readonly ApplicationDbContext _db;
+
+        public AccountsController(ApplicationDbContext db)
         {
-            return new string[] { "value1", "value2" };
+            _db = db;
         }
 
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        public ActionResult Index()
         {
-            return "value";
+            List<ApplicationUser> model = _db.ApplicationUsers.ToList();
+            return View(model);
         }
 
-        // POST api/values
+        public ActionResult Create()
+        {
+            return View();
+        }
+
         [HttpPost]
-        public void Post([FromBody] string value)
+        public ActionResult Create(ApplicationUser applicationUser)
         {
+            _db.ApplicationUsers.Add(applicationUser);
+            _db.SaveChanges();
+            return RedirectToAction("Index");
         }
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public ActionResult Details(int id)
         {
+            ApplicationUser thisApplicationUser = _db.ApplicationUsers.FirstOrDefault(applicationUser => applicationUser.ApplicationUserId == id);
+            return View(thisApplicationUser);
         }
 
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        public ActionResult Edit(int id)
         {
+            var thisApplicationUser = _db.ApplicationUsers.FirstOrDefault(applicationUser => applicationUser.ApplicationUserId == id);
+            return View(thisApplicationUser);
+        }
+
+        [HttpPost]
+        public ActionResult Edit(ApplicationUser applicationUser)
+        {
+            _db.Entry(applicationUser).State = EntityState.Modified;
+            _db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        public ActionResult Delete(int id)
+        {
+            var thisApplicationUser = _db.ApplicationUsers.FirstOrDefault(applicationUser => applicationUser.ApplicationUserId == id);
+            return View(thisApplicationUser);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        public ActionResult DeleteConfirmed(int id)
+        {
+            var thisApplicationUser = _db.ApplicationUsers.FirstOrDefault(applicationUser => applicationUser.ApplicationUserId == id);
+            _db.ApplicationUsers.Remove(thisApplicationUser);
+            _db.SaveChanges();
+            return RedirectToAction("Index");
         }
     }
 }
